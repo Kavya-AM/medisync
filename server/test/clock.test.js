@@ -1,0 +1,12 @@
+const test = require("node:test"), assert = require("node:assert");
+const { shift } = require("../src/lib/clock"), { streak, week } = require("../src/lib/adherence"), { cell, toCsv } = require("../src/lib/csv");
+test("shift forward within a day", () => assert.deepEqual(shift({ date: "2026-11-18", time: "09:30" }, 60), { date: "2026-11-18", time: "10:30" }));
+test("shift across midnight and month end", () => assert.deepEqual(shift({ date: "2026-11-30", time: "23:30" }, 60), { date: "2026-12-01", time: "00:30" }));
+test("shift 24 hours and backwards", () => { assert.deepEqual(shift({ date: "2026-11-18", time: "09:00" }, 1440), { date: "2026-11-19", time: "09:00" }); assert.deepEqual(shift({ date: "2026-03-01", time: "00:10" }, -20), { date: "2026-02-28", time: "23:50" }); });
+test("streak counts back from today", () => assert.equal(streak(["2026-11-16", "2026-11-17", "2026-11-18"], "2026-11-18"), 3));
+test("streak survives when today is not taken yet", () => assert.equal(streak(["2026-11-16", "2026-11-17"], "2026-11-18"), 2));
+test("streak breaks on a missed day", () => { assert.equal(streak(["2026-11-15", "2026-11-17"], "2026-11-18"), 1); assert.equal(streak([], "2026-11-18"), 0); });
+test("week counts the last seven days only", () => assert.equal(week(["2026-11-18", "2026-11-14", "2026-11-12", "2026-11-11"], "2026-11-18"), 3));
+test("csv quotes commas and quotes", () => { assert.equal(cell('a,"b"'), '"a,""b"""'); assert.equal(cell(null), ""); });
+test("csv blocks spreadsheet formulas", () => { assert.equal(cell("=HYPERLINK(1)"), "'=HYPERLINK(1)"); assert.equal(cell("-5"), "'-5"); });
+test("csv builds rows", () => assert.equal(toCsv(["A", "B"], [[1, "x y"]]), "A,B\r\n1,x y\r\n"));

@@ -1,0 +1,14 @@
+services:
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes: [mongodata:/data/db]
+  api:
+    build: ./server
+    env_file: ./server/.env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/medisync
+    ports: ["5000:5000"]
+    depends_on: [mongo]
+volumes:
+  mongodata:
